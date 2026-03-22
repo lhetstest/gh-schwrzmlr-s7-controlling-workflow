@@ -16,10 +16,23 @@ jobs:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: npm ci
+        run: |
+          if [ "${{ steps.cache.outputs.cache-hit }}" != 'true' ]; then
+            npm ci
+          else
+            echo "Cache hit, skipping npm ci"
+          fi
+      - name: Ensure eslint is installed
+        run: |
+          if [ ! -f node_modules/.bin/eslint ]; then
+            echo "eslint not found, running npm ci"
+            npm ci
+          else
+            echo "eslint found"
+          fi
       - name: Lint code
         run: npm run lint
+
   test:
     runs-on: ubuntu-latest
     steps:
